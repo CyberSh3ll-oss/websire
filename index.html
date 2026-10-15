@@ -1,1776 +1,735 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AEGIS — Threat Intelligence & Offensive Security</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --navy-950: #030812;
-    --navy-900: #07101f;
-    --navy-800: #0d1b33;
-    --navy-700: #142848;
-    --navy-600: #1d3b6f;
-    --navy-400: #3b6cb0;
-    --navy-200: #8aafd4;
-    --navy-100: #c5d8ec;
-    --navy-50:  #eaf1f8;
-
-    --slate-900: #1a1d24;
-    --slate-700: #2e333e;
-    --slate-500: #6b7585;
-    --slate-400: #8a94a6;
-    --slate-300: #cbd5e1;
-    --slate-200: rgba(255, 255, 255, 0.12);
-    --slate-100: rgba(255, 255, 255, 0.06);
-
-    --crimson: #a11d33;
-    --crimson-light: #c72b44;
-    --crimson-faint: rgba(161, 29, 51, 0.2);
-
-    --gold: #b38b3a;
-    --gold-light: #dfb252;
-    --gold-faint: rgba(179, 139, 58, 0.15);
-
-    --white: #ffffff;
-    --glass-bg: rgba(10, 22, 40, 0.65);
-    --glass-card: rgba(15, 32, 64, 0.45);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-border-glow: rgba(223, 178, 82, 0.3);
-
-    --font-serif: 'EB Garamond', Georgia, serif;
-    --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
-    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
-  }
-
-  html { scroll-behavior: smooth; font-size: 16px; }
-
-  body {
-    font-family: var(--font-sans);
-    background: var(--navy-950);
-    color: var(--navy-100);
-    line-height: 1.6;
-    overflow-x: hidden;
-    position: relative;
-  }
-
-  /* Glassmorphism Background Ambient Glow Orbs */
-  body::before, body::after {
-    content: '';
-    position: fixed;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    filter: blur(120px);
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0.35;
-  }
-  body::before {
-    top: -100px;
-    left: -100px;
-    background: var(--navy-600);
-  }
-  body::after {
-    bottom: -100px;
-    right: -100px;
-    background: var(--crimson);
-  }
-
-  /* ── SYSTEM NOTICE MODAL ─────────────────────── */
-  body.modal-open { overflow: hidden; }
-
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(3, 8, 18, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-  }
-
-  .modal-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .modal-content {
-    background: rgba(10, 22, 40, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-top: 3px solid var(--crimson-light);
-    max-width: 600px;
-    width: 100%;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(161, 29, 51, 0.2);
-    position: relative;
-    transform: translateY(0);
-    transition: transform 0.3s ease;
-    border-radius: 6px;
-  }
-
-  .modal-overlay.hidden .modal-content { transform: translateY(20px); }
-
-  .modal-header-bar {
-    padding: 1rem 1.5rem;
-    background: rgba(5, 13, 26, 0.7);
-    border-bottom: 1px solid var(--glass-border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-  }
-
-  .modal-title-text {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--crimson-light);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-  }
-
-  .modal-body-content { padding: 2rem 1.5rem; }
-
-  .modal-text {
-    font-family: var(--font-serif);
-    font-size: 1.15rem;
-    color: var(--navy-100);
-    line-height: 1.6;
-    margin-bottom: 1.25rem;
-  }
-
-  .modal-text strong {
-    color: var(--gold-light);
-    font-weight: 600;
-  }
-
-  .modal-footer-bar {
-    padding: 1.5rem;
-    border-top: 1px solid var(--glass-border);
-    text-align: right;
-    background: rgba(5, 13, 26, 0.7);
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-  }
-
-  .modal-btn {
-    background: rgba(223, 178, 82, 0.1);
-    color: var(--gold-light);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    border: 1px solid var(--gold-light);
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    border-radius: 4px;
-    backdrop-filter: blur(4px);
-  }
-
-  .modal-btn:hover {
-    background: var(--gold-light);
-    color: var(--navy-950);
-    box-shadow: 0 0 15px rgba(223, 178, 82, 0.4);
-  }
-
-  /* ── SKIP LINK ───────────────────────────────── */
-  .skip-link {
-    position: absolute; top: -40px; left: 0; background: var(--navy-900);
-    color: var(--white); padding: 8px 16px; z-index: 9999; font-size: 13px;
-    transition: top 0.2s;
-  }
-  .skip-link:focus { top: 0; }
-
-  /* ── TOP STRIP ───────────────────────────────── */
-  .top-strip {
-    background: linear-gradient(90deg, var(--crimson), #c72b44);
-    color: var(--white);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-align: center;
-    padding: 6px 1rem;
-    box-shadow: 0 2px 10px rgba(161, 29, 51, 0.3);
-  }
-
-  /* ── HEADER / AGENCY BANNER ──────────────────── */
-  .site-header {
-    background: rgba(7, 16, 31, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--glass-border);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-  }
-
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-  }
-
-  .header-branding {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    padding: 1.25rem 0 1.1rem;
-    border-bottom: 1px solid var(--glass-border);
-  }
-
-  .header-seal {
-    flex-shrink: 0;
-    width: 68px;
-    height: 68px;
-    filter: drop-shadow(0 0 8px rgba(223, 178, 82, 0.3));
-  }
-
-  .header-title-block .agency-title {
-    font-family: var(--font-serif);
-    font-size: 2.6rem;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: 0.22em;
-    line-height: 1;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-  }
-
-  .header-title-block .agency-subtitle {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--navy-200);
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin-top: 0.35rem;
-  }
-
-  .header-meta {
-    margin-left: auto;
-    text-align: right;
-  }
-
-  .header-meta .clearance-badge {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    color: var(--gold-light);
-    background: rgba(223, 178, 82, 0.08);
-    border: 1px solid var(--glass-border-glow);
-    padding: 4px 10px;
-    text-transform: uppercase;
-    border-radius: 4px;
-    backdrop-filter: blur(4px);
-  }
-
-  .header-meta .est-line {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    color: var(--slate-400);
-    margin-top: 6px;
-    letter-spacing: 0.08em;
-  }
-
-  /* ── PRIMARY NAVIGATION ──────────────────────── */
-  .primary-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0;
-  }
-
-  .nav-links {
-    display: flex;
-    list-style: none;
-    gap: 0;
-  }
-
-  .nav-links a {
-    display: block;
-    font-family: var(--font-sans);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--navy-200);
-    text-decoration: none;
-    padding: 0.85rem 1.1rem;
-    border-right: 1px solid var(--glass-border);
-    transition: color 0.2s, background 0.2s, text-shadow 0.2s;
-  }
-
-  .nav-links li:first-child a { border-left: 1px solid var(--glass-border); }
-
-  .nav-links a:hover {
-    color: var(--white);
-    background: rgba(255, 255, 255, 0.05);
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
-  }
-
-  .nav-cta {
-    font-family: var(--font-mono) !important;
-    font-size: 0.72rem !important;
-    color: var(--gold-light) !important;
-    border-left: none !important;
-    border-right: none !important;
-    padding-right: 0 !important;
-  }
-
-  .nav-cta:hover { background: transparent !important; color: var(--white) !important; }
-
-  /* Hamburger */
-  .nav-hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    cursor: pointer;
-    padding: 0.85rem 0;
-    background: none;
-    border: none;
-  }
-
-  .nav-hamburger span {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: var(--navy-200);
-    transition: transform 0.2s, opacity 0.2s;
-  }
-
-  /* ── HERO SECTION ─────────────────────────────── */
-  .hero {
-    background: transparent;
-    border-bottom: 1px solid var(--glass-border);
-    padding: 5rem 2rem 4.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.015) 39px, rgba(255,255,255,0.015) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(255,255,255,0.015) 79px, rgba(255,255,255,0.015) 80px);
-    pointer-events: none;
-  }
-
-  .hero-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-  }
-
-  .hero-classification {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.2em;
-    color: var(--crimson-light);
-    text-transform: uppercase;
-    background: var(--crimson-faint);
-    border: 1px solid var(--crimson);
-    display: inline-block;
-    padding: 4px 12px;
-    margin-bottom: 1.5rem;
-    border-radius: 4px;
-    backdrop-filter: blur(4px);
-  }
-
-  .hero-main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
-  }
-
-  .hero-heading {
-    font-family: var(--font-serif);
-    font-size: 4.2rem;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: 0.25em;
-    line-height: 0.95;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
-  }
-
-  .hero-tagline {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
-    color: var(--gold-light);
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-    border-left: 2px solid var(--gold-light);
-    padding-left: 0.8rem;
-  }
-
-  .hero-mission {
-    font-family: var(--font-serif);
-    font-size: 1.4rem;
-    font-weight: 400;
-    font-style: italic;
-    color: var(--navy-100);
-    line-height: 1.55;
-    border-left: 3px solid var(--crimson-light);
-    padding-left: 1.25rem;
-  }
-
-  .hero-right {
-    border: 1px solid var(--glass-border);
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 1.75rem;
-    border-radius: 8px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  }
-
-  .status-panel-title {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.18em;
-    color: var(--slate-400);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--glass-border);
-    padding-bottom: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .status-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    color: var(--navy-200);
-  }
-
-  .status-row:last-child { border-bottom: none; }
-
-  .status-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-right: 8px;
-  }
-
-  .status-dot.green { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
-  .status-dot.amber { background: var(--gold-light); box-shadow: 0 0 8px var(--gold-light); }
-  .status-dot.red   { background: var(--crimson-light); box-shadow: 0 0 8px var(--crimson-light); }
-
-  .status-val {
-    color: var(--white);
-    letter-spacing: 0.05em;
-  }
-
-  /* ── SECTION SHELL ───────────────────────────── */
-  .section-block {
-    padding: 5rem 2rem;
-    border-bottom: 1px solid var(--glass-border);
-    position: relative;
-  }
-
-  .section-block:nth-child(even) { background: rgba(5, 13, 26, 0.3); }
-  .section-block:nth-child(odd)  { background: transparent; }
-
-  .section-inner { max-width: 1200px; margin: 0 auto; }
-
-  .section-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    letter-spacing: 0.22em;
-    color: var(--crimson-light);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .section-heading {
-    font-family: var(--font-serif);
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 0.4rem;
-    line-height: 1.15;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-  }
-
-  .section-rule {
-    width: 48px;
-    height: 3px;
-    background: var(--crimson-light);
-    margin-bottom: 2rem;
-    border: none;
-    box-shadow: 0 0 10px var(--crimson);
-  }
-
-  .section-lead {
-    font-size: 1rem;
-    color: var(--slate-400);
-    max-width: 640px;
-    margin-bottom: 2.5rem;
-    line-height: 1.7;
-  }
-
-  /* ── SERVICES GRID ───────────────────────────── */
-  .services-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-  }
-
-  .service-card {
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    padding: 2.25rem 1.5rem;
-    position: relative;
-    border-radius: 8px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .service-card:hover {
-    transform: translateY(-5px);
-    border-color: var(--glass-border-glow);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(223, 178, 82, 0.15);
-  }
-
-  .service-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--gold-light);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-  }
-
-  .service-card:hover::before { transform: scaleX(1); }
-
-  .service-icon {
-    width: 44px;
-    height: 44px;
-    background: rgba(20, 40, 72, 0.6);
-    border: 1px solid var(--glass-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.25rem;
-    border-radius: 6px;
-    backdrop-filter: blur(4px);
-  }
-
-  .service-icon svg { width: 20px; height: 20px; stroke: var(--gold-light); fill: none; stroke-width: 1.5; }
-
-  .service-code {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    color: var(--slate-400);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .service-name {
-    font-family: var(--font-serif);
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 0.75rem;
-    line-height: 1.2;
-  }
-
-  .service-desc {
-    font-size: 0.85rem;
-    color: var(--slate-400);
-    line-height: 1.65;
-  }
-
-  /* ── OPERATIONAL DIRECTIVE ───────────────────── */
-  .directive-block {
-    background: rgba(7, 16, 31, 0.5) !important;
-    border-bottom: 3px solid var(--gold-light);
-  }
-
-  .directive-block .section-eyebrow { color: var(--gold-light); }
-  .directive-block .section-rule    { background: var(--gold-light); box-shadow: 0 0 10px var(--gold); }
-
-  .directive-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: start;
-  }
-
-  .directive-text {
-    font-family: var(--font-serif);
-    font-size: 1.15rem;
-    font-style: italic;
-    color: var(--navy-100);
-    line-height: 1.75;
-    border-left: 3px solid var(--gold-light);
-    padding-left: 1.5rem;
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 2rem;
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-  }
-
-  .directive-checklist {
-    list-style: none;
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    padding: 1.5rem 2rem;
-    border-radius: 8px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-  }
-
-  .directive-checklist li {
-    display: flex;
-    gap: 0.75rem;
-    font-size: 0.88rem;
-    color: var(--navy-200);
-    padding: 0.85rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    font-family: var(--font-sans);
-    line-height: 1.5;
-  }
-
-  .directive-checklist li:last-child { border-bottom: none; }
-
-  .check-mark {
-    flex-shrink: 0;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    color: var(--gold-light);
-    margin-top: 2px;
-  }
-
-  /* ── THREAT INTEL FEED ───────────────────────── */
-  .intel-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-  }
-
-  .intel-card {
-    border: 1px solid var(--glass-border);
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    display: flex;
-    flex-direction: column;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease, border-color 0.3s ease;
-  }
-
-  .intel-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--glass-border-glow);
-  }
-
-  .intel-header {
-    background: rgba(5, 13, 26, 0.75);
-    padding: 1.1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--glass-border);
-  }
-
-  .intel-classification-tag {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.14em;
-    color: var(--crimson-light);
-    background: var(--crimson-faint);
-    border: 1px solid var(--crimson);
-    padding: 3px 8px;
-    text-transform: uppercase;
-    border-radius: 4px;
-  }
-
-  .intel-id {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    color: var(--slate-400);
-    letter-spacing: 0.1em;
-  }
-
-  .intel-body { padding: 1.75rem; flex-grow: 1; }
-
-  .intel-title {
-    font-family: var(--font-serif);
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-  }
-
-  .intel-meta {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    color: var(--slate-400);
-    letter-spacing: 0.08em;
-    margin-bottom: 1rem;
-  }
-
-  .intel-meta span { margin-right: 1.25rem; }
-
-  .intel-summary {
-    font-size: 0.88rem;
-    color: var(--slate-400);
-    line-height: 1.7;
-    margin-bottom: 1.25rem;
-  }
-
-  .attack-chain {
-    background: rgba(3, 8, 18, 0.6);
-    border: 1px solid var(--glass-border);
-    padding: 0.85rem 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--navy-200);
-    letter-spacing: 0.04em;
-    margin-bottom: 1.25rem;
-    line-height: 1.8;
-    border-radius: 6px;
-  }
-
-  .attack-chain .chain-label {
-    color: var(--gold-light);
-    font-size: 0.62rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-bottom: 0.4rem;
-    display: block;
-  }
-
-  .attack-step { color: var(--navy-100); }
-  .attack-arrow { color: var(--crimson-light); margin: 0 0.3rem; }
-
-  .intel-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .intel-tag {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
-    color: var(--navy-200);
-    background: rgba(20, 40, 72, 0.5);
-    border: 1px solid var(--glass-border);
-    padding: 3px 8px;
-    text-transform: uppercase;
-    border-radius: 4px;
-  }
-
-  .intel-footer {
-    border-top: 1px solid var(--glass-border);
-    padding: 0.85rem 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(5, 13, 26, 0.5);
-  }
-
-  .intel-author {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    color: var(--slate-400);
-    letter-spacing: 0.06em;
-  }
-
-  .intel-severity {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.1em;
-    padding: 3px 8px;
-    text-transform: uppercase;
-    border-radius: 4px;
-  }
-
-  .severity-critical { background: var(--crimson-faint); color: var(--crimson-light); border: 1px solid var(--crimson); }
-  .severity-high { background: var(--gold-faint); color: var(--gold-light); border: 1px solid var(--gold); }
-
-  /* ── ASSETS GRID ─────────────────────────────── */
-  .assets-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-  }
-
-  .asset-btn {
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    color: var(--white);
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    text-decoration: none;
-    text-transform: uppercase;
-    border: 1px solid var(--glass-border);
-    padding: 1rem;
-    transition: all 0.25s ease;
-    display: inline-block;
-    width: 100%;
-    text-align: center;
-    border-radius: 6px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  }
-
-  .asset-btn:hover {
-    background: rgba(223, 178, 82, 0.15);
-    border-color: var(--gold-light);
-    color: var(--gold-light);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 15px rgba(223, 178, 82, 0.2);
-    transform: translateY(-2px);
-  }
-
-  /* ── PERSONNEL / ABOUT ───────────────────────── */
-  .personnel-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin-bottom: 3rem;
-  }
-
-  .personnel-card {
-    border: 1px solid var(--glass-border);
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  }
-
-  .personnel-banner {
-    background: rgba(13, 27, 51, 0.8);
-    border-bottom: 1px solid var(--glass-border);
-    padding: 1.75rem;
-    display: flex;
-    align-items: flex-start;
-    gap: 1.25rem;
-  }
-
-  .personnel-avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: var(--navy-600);
-    border: 2px solid var(--gold-light);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-serif);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--gold-light);
-    flex-shrink: 0;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(223, 178, 82, 0.3);
-  }
-
-  .personnel-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .personnel-name {
-    font-family: var(--font-serif);
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--white);
-    line-height: 1.2;
-    margin-bottom: 0.2rem;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  }
-
-  .personnel-role {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    color: var(--gold-light);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .personnel-body { padding: 1.75rem; }
-
-  .personnel-bio {
-    font-size: 0.88rem;
-    color: var(--slate-400);
-    line-height: 1.75;
-    margin-bottom: 1.5rem;
-  }
-
-  .personnel-specs {
-    border-top: 1px solid var(--glass-border);
-    padding-top: 1.25rem;
-  }
-
-  .spec-label {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.14em;
-    color: var(--crimson-light);
-    text-transform: uppercase;
-    margin-bottom: 0.6rem;
-  }
-
-  .spec-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .spec-tag {
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    color: var(--navy-100);
-    background: rgba(20, 40, 72, 0.5);
-    border: 1px solid var(--glass-border);
-    padding: 4px 9px;
-    letter-spacing: 0.04em;
-    border-radius: 4px;
-  }
-
-  /* Academic Grid */
-  .academic-section {
-    border: 1px solid var(--glass-border);
-    background: var(--glass-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 2rem;
-    margin-top: 2.5rem;
-    border-radius: 8px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  }
-
-  .academic-title {
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    letter-spacing: 0.18em;
-    color: var(--slate-400);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--glass-border);
-    padding-bottom: 0.75rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .academic-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .academic-item {
-    font-family: var(--font-sans);
-    font-size: 0.8rem;
-    color: var(--navy-100);
-    padding: 0.6rem 0.85rem;
-    background: rgba(5, 13, 26, 0.5);
-    border: 1px solid var(--glass-border);
-    border-left: 2px solid var(--navy-400);
-    line-height: 1.3;
-    border-radius: 4px;
-  }
-
-  /* ── CONTACT / ENGAGEMENT FORM ───────────────── */
-  .contact-block { background: rgba(5, 13, 26, 0.4) !important; }
-
-  .form-container {
-    max-width: 680px;
-    background: var(--glass-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-top: 3px solid var(--navy-400);
-    border-radius: 8px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-    margin: 0 auto;
-  }
-
-  .form-header {
-    background: rgba(5, 13, 26, 0.8);
-    padding: 1.25rem 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--glass-border);
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-  }
-
-  .form-header-title {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--navy-200);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .form-header-enc {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    color: var(--gold-light);
-    letter-spacing: 0.08em;
-  }
-
-  .form-body { padding: 2.25rem 2rem; }
-
-  .form-group { margin-bottom: 1.5rem; }
-
-  .form-label {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    color: var(--slate-400);
-    text-transform: uppercase;
-    margin-bottom: 0.45rem;
-  }
-
-  .form-label .req { color: var(--crimson-light); margin-left: 3px; }
-
-  .form-input,
-  .form-select,
-  .form-textarea {
-    width: 100%;
-    font-family: var(--font-sans);
-    font-size: 0.9rem;
-    color: var(--white);
-    background: rgba(3, 8, 18, 0.5);
-    border: 1px solid var(--glass-border);
-    padding: 0.75rem 1rem;
-    outline: none;
-    transition: all 0.2s ease;
-    border-radius: 6px;
-    appearance: none;
-    -webkit-appearance: none;
-    backdrop-filter: blur(4px);
-  }
-
-  .form-input:focus,
-  .form-select:focus,
-  .form-textarea:focus {
-    border-color: var(--gold-light);
-    background: rgba(3, 8, 18, 0.75);
-    box-shadow: 0 0 15px rgba(223, 178, 82, 0.2);
-  }
-
-  .form-textarea { resize: vertical; min-height: 120px; }
-
-  .form-select-wrap { position: relative; }
-
-  .form-select-wrap::after {
-    content: '▾';
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-    color: var(--slate-400);
-    pointer-events: none;
-  }
-
-  .form-checkbox-group {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-    padding: 1.1rem;
-    background: rgba(3, 8, 18, 0.4);
-    border: 1px solid var(--glass-border);
-    margin-bottom: 1.5rem;
-    border-radius: 6px;
-  }
-
-  .form-checkbox {
-    flex-shrink: 0;
-    width: 16px;
-    height: 16px;
-    margin-top: 2px;
-    cursor: pointer;
-    accent-color: var(--gold-light);
-  }
-
-  .form-checkbox-label {
-    font-size: 0.82rem;
-    color: var(--slate-400);
-    line-height: 1.55;
-    cursor: pointer;
-  }
-
-  .form-submit {
-    width: 100%;
-    background: rgba(223, 178, 82, 0.15);
-    color: var(--gold-light);
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    border: 1px solid var(--gold-light);
-    padding: 1rem;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    border-radius: 6px;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  }
-
-  .form-submit:hover {
-    background: var(--gold-light);
-    color: var(--navy-950);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 20px rgba(223, 178, 82, 0.4);
-    transform: translateY(-2px);
-  }
-
-  .form-note {
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    color: var(--slate-400);
-    margin-top: 1rem;
-    text-align: center;
-    letter-spacing: 0.05em;
-  }
-
-  /* ── FOOTER ──────────────────────────────────── */
-  .site-footer {
-    background: rgba(3, 8, 18, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 3px solid var(--gold-light);
-    padding: 3rem 2rem 2.5rem;
-  }
-
-  .footer-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 2rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid var(--glass-border);
-    margin-bottom: 1.5rem;
-  }
-
-  .footer-brand-name {
-    font-family: var(--font-serif);
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: 0.2em;
-    margin-bottom: 0.4rem;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  }
-
-  .footer-brand-line {
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    color: var(--slate-400);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .footer-col-title {
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    color: var(--gold-light);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    margin-bottom: 0.85rem;
-  }
-
-  .footer-links { list-style: none; }
-  .footer-links li { margin-bottom: 0.4rem; }
-  .footer-links a {
-    font-family: var(--font-sans);
-    font-size: 0.8rem;
-    color: var(--slate-400);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .footer-links a:hover { color: var(--navy-100); text-shadow: 0 0 8px rgba(255,255,255,0.3); }
-
-  .footer-bottom {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .footer-copy {
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    color: var(--slate-400);
-    letter-spacing: 0.06em;
-  }
-
-  .footer-clearance {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    color: var(--crimson-light);
-    background: var(--crimson-faint);
-    border: 1px solid var(--crimson);
-    padding: 3px 8px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    border-radius: 4px;
-    backdrop-filter: blur(4px);
-  }
-
-  /* ── RESPONSIVE ──────────────────────────────── */
-  @media (max-width: 960px) {
-    .services-grid { grid-template-columns: repeat(2, 1fr); }
-    .hero-main { grid-template-columns: 1fr; gap: 2rem; }
-    .hero-right { display: none; }
-    .directive-layout { grid-template-columns: 1fr; gap: 2rem; }
-    .intel-grid { grid-template-columns: 1fr; }
-    .assets-grid { grid-template-columns: repeat(2, 1fr); }
-    .personnel-grid { grid-template-columns: 1fr; }
-    .footer-inner { grid-template-columns: 1fr 1fr; }
-  }
-
-  @media (max-width: 640px) {
-    .header-branding { gap: 1rem; }
-    .header-seal { width: 52px; height: 52px; }
-    .header-title-block .agency-title { font-size: 2rem; }
-    .header-meta { display: none; }
-
-    .nav-links { display: none; flex-direction: column; width: 100%; background: rgba(7, 16, 31, 0.95); backdrop-filter: blur(20px); position: absolute; top: 100%; left: 0; border-bottom: 1px solid var(--glass-border); }
-    .nav-links.open { display: flex; }
-    .nav-links a {
-      border-right: none !important;
-      border-left: none !important;
-      border-top: 1px solid var(--glass-border);
-      padding: 0.9rem 1.25rem;
-      width: 100%;
-    }
-    .nav-cta { padding-left: 1.25rem !important; }
-    .nav-hamburger { display: flex; }
-
-    .hero { padding: 3rem 1.25rem 3rem; }
-    .hero-heading { font-size: 3rem; }
-    .section-block { padding: 3rem 1.25rem; }
-
-    .services-grid { grid-template-columns: 1fr; }
-    .assets-grid { grid-template-columns: 1fr; }
-
-    .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
-    .footer-bottom { flex-direction: column; gap: 0.75rem; text-align: center; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition: none !important; }
-    .service-card::before { display: none; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS — Threat Intelligence & Offensive Security</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        appleDark: '#000000',
+                        appleNavy: '#070c18',
+                        appleGray: '#1d1d1f',
+                        appleCard: 'rgba(22, 28, 45, 0.45)',
+                        appleBorder: 'rgba(255, 255, 255, 0.12)',
+                        appleTextDim: '#86868b',
+                        appleBlue: '#2997ff',
+                        appleGreen: '#30d158',
+                        appleRed: '#ff453a',
+                        appleAmber: '#ffd60a'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'sans-serif'],
+                        mono: ['SF Mono', 'Fira Code', 'Menlo', 'monospace']
+                    },
+                    boxShadow: {
+                        'glass-specular': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.2)',
+                        'glow-blue': '0 0 30px rgba(41, 151, 255, 0.25)',
+                        'glow-red': '0 0 30px rgba(255, 69, 58, 0.25)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Apple & Security Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom Glassmorphism 2.0 Utilities */
+        .glass-panel {
+            background: rgba(18, 22, 38, 0.45);
+            backdrop-filter: blur(25px) saturate(190%);
+            -webkit-backdrop-filter: blur(25px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .glass-nav {
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-modal {
+            background: rgba(15, 20, 32, 0.75);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.25), 0 30px 60px rgba(0,0,0,0.7);
+        }
+
+        /* Ambient Glowing Background Orbs */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            opacity: 0.35;
+            z-index: 0;
+        }
+
+        /* Text Gradient Effect */
+        .text-apple-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-blue-gradient {
+            background: linear-gradient(135deg, #2997ff 0%, #0077ed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Scanline Overlay for Cybersecurity Touch */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+        }
+    </style>
 </head>
-<body class="modal-open">
+<body class="bg-[#02040a] text-gray-200 font-sans antialiased relative overflow-x-hidden min-h-screen selection:bg-appleBlue selection:text-white">
 
-<div id="system-notice-modal" class="modal-overlay">
-  <div class="modal-content" role="dialog" aria-labelledby="modal-title" aria-modal="true">
-    <div class="modal-header-bar">
-      <span id="modal-title" class="modal-title-text">◼ Security Clearance Required</span>
-      <span style="color: var(--slate-400); font-family: var(--font-mono); font-size: 0.65rem;">SYS_NOTICE_01</span>
-    </div>
-    <div class="modal-body-content">
-      <p class="modal-text">
-        <strong>ATTENTION:</strong> This infrastructure is a website for freelance work engineered by <strong>Vaishnav Rajeev</strong>.
-      </p>
-      <p class="modal-text">
-        This infrastructure is created and independently managed by Vaishnav Rajeev as part of his freelance cybersecurity and IT services. All projects are undertaken directly by Vaishnav Rajeev with a strong commitment to professionalism, confidentiality, and client privacy. Every engagement is handled independently, and all client information and project details are treated with strict secrecy and discretion.
-      </p>
-      <p class="modal-text" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--slate-400); margin-bottom: 0;">
-        Proceed with caution!
-      </p>
-    </div>
-    <div class="modal-footer-bar">
-      <button id="modal-ack-btn" class="modal-btn">Acknowledge & Enter</button>
-    </div>
-  </div>
-</div>
+    <!-- Ambient Gradient Orbs (Apple-style Soft Aura) -->
+    <div class="bg-orb w-[600px] h-[600px] bg-blue-600 top-[-100px] left-[-100px]"></div>
+    <div class="bg-orb w-[500px] h-[500px] bg-indigo-800 top-[30%] right-[-150px]"></div>
+    <div class="bg-orb w-[700px] h-[700px] bg-cyan-900 bottom-[10%] left-[-200px]"></div>
 
-<a href="#main-content" class="skip-link">Skip to main content</a>
-
-<div class="top-strip" role="banner" aria-label="Security notice">
-  ALL COMMUNICATIONS MONITORED &nbsp;|&nbsp; UNAUTHORIZED ACCESS PROHIBITED &nbsp;|&nbsp; AEGIS SECURE CHANNEL
-</div>
-
-<header class="site-header" role="banner">
-  <div class="header-inner">
-    <div class="header-branding">
-      <svg class="header-seal" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Aegis seal">
-        <circle cx="36" cy="36" r="34" stroke="#dfb252" stroke-width="1.5"/>
-        <circle cx="36" cy="36" r="28" stroke="#1d3b6f" stroke-width="1"/>
-        <polygon points="36,10 42,28 60,28 46,38 52,56 36,46 20,56 26,38 12,28 30,28" fill="none" stroke="#dfb252" stroke-width="1.2"/>
-        <text x="36" y="39" text-anchor="middle" font-family="EB Garamond, serif" font-size="11" font-weight="700" fill="#dfb252" letter-spacing="3">AEG</text>
-      </svg>
-
-      <div class="header-title-block">
-        <div class="agency-title">AEGIS</div>
-        <div class="agency-subtitle">Threat Intelligence &amp; Offensive Security Consulting</div>
-      </div>
-
-      <div class="header-meta">
-        <span class="clearance-badge">Secure Operations</span>
-        <span class="est-line">Est. 2026 &nbsp;·&nbsp; Nileshwar, Kasargod, India</span>
-      </div>
+    <!-- Top Security Announcement Ribbon (Apple Ribbon Style) -->
+    <div class="w-full bg-[#0d1322] border-b border-white/10 py-2.5 px-4 text-center text-xs sm:text-sm font-medium tracking-wide relative z-40 text-appleTextDim">
+        <div class="max-w-7xl mx-auto flex items-center justify-center space-x-2">
+            <span class="inline-block w-2 h-2 rounded-full bg-appleGreen animate-pulse"></span>
+            <span class="text-white">SYSTEM NOTICE:</span>
+            <span class="hidden sm:inline">DEFCON LEVEL 3 ENFORCED — Live Threat Monitoring Operational.</span>
+            <span class="sm:hidden">DEFCON 3 ACTIVE.</span>
+            <a href="#intel" class="text-appleBlue hover:underline inline-flex items-center ml-2">
+                Read Security Advisory <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+            </a>
+        </div>
     </div>
 
-    <nav class="primary-nav" aria-label="Primary navigation">
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#operations">Operations</a></li>
-        <li><a href="#directive">Directive</a></li>
-        <li><a href="#intel-feed">Intel Feed</a></li>
-        <li><a href="#assets">Assets</a></li>
-        <li><a href="#personnel">Personnel</a></li>
-        <li><a href="#engage" class="nav-cta">» Initiate Engagement</a></li>
-      </ul>
-      <button class="nav-hamburger" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+    <!-- Apple-style Floating Nav Bar -->
+    <nav class="sticky top-0 z-50 glass-nav w-full transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center space-x-2.5 text-white font-semibold text-lg tracking-tight group">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center text-xs shadow-md border border-white/20 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-shield-halved text-white"></i>
+                </div>
+                <span class="tracking-widest font-mono text-base font-bold">AEGIS</span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <div class="hidden md:flex items-center space-x-8 text-xs font-medium text-gray-300 tracking-wide">
+                <a href="#capabilities" class="hover:text-white transition-colors">CAPABILITIES</a>
+                <a href="#directive" class="hover:text-white transition-colors">DIRECTIVE</a>
+                <a href="#intel" class="hover:text-white transition-colors">INTEL FEED</a>
+                <a href="#github-assets" class="hover:text-white transition-colors">OPEN ASSETS</a>
+                <a href="#personnel" class="hover:text-white transition-colors">PERSONNEL</a>
+            </div>
+
+            <!-- CTA & Mobile Toggle -->
+            <div class="flex items-center space-x-4">
+                <a href="#engagement" class="bg-appleBlue/90 hover:bg-appleBlue text-white text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all shadow-md hover:shadow-glow-blue border border-white/20">
+                    Initiate Engagement
+                </a>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white text-lg focus:outline-none p-1">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer Menu -->
+        <div id="mobile-menu" class="hidden md:hidden glass-modal border-t border-white/10 px-6 py-6 space-y-4 text-sm font-medium">
+            <a href="#capabilities" class="block text-gray-300 hover:text-white py-1">Capabilities</a>
+            <a href="#directive" class="block text-gray-300 hover:text-white py-1">Directive & Doctrine</a>
+            <a href="#intel" class="block text-gray-300 hover:text-white py-1">Intel Feed</a>
+            <a href="#github-assets" class="block text-gray-300 hover:text-white py-1">Open Source Assets</a>
+            <a href="#personnel" class="block text-gray-300 hover:text-white py-1">Personnel & Credentials</a>
+            <a href="#engagement" class="block text-appleBlue font-semibold py-1">Initiate Engagement →</a>
+        </div>
     </nav>
-  </div>
-</header>
 
-<section class="hero" id="main-content" aria-labelledby="hero-heading">
-  <div class="hero-inner">
-    <div class="hero-classification" aria-label="Classification: Operational">◼ OPERATIONAL — THREAT ADVISORY ACTIVE</div>
+    <!-- Main Container -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-28 pt-12 pb-24">
 
-    <div class="hero-main">
-      <div class="hero-left">
-        <h1 class="hero-heading" id="hero-heading">AEGIS</h1>
-        <p class="hero-tagline">Threat Intelligence &amp; Offensive Security</p>
-        <p class="hero-mission">
-          "Zero-compromise threat analysis. Bespoke, custom-engineered defense architecture."
-        </p>
-      </div>
-
-      <div class="hero-right" role="complementary" aria-label="Operational status panel">
-        <div class="status-panel-title">◼ OPERATIONAL STATUS — CURRENT CYCLE</div>
-        <div class="status-row">
-          <span><span class="status-dot green" aria-hidden="true"></span>Threat Assessment Engine</span>
-          <span class="status-val">ONLINE</span>
-        </div>
-        <div class="status-row">
-          <span><span class="status-dot green" aria-hidden="true"></span>Offensive Simulation Grid</span>
-          <span class="status-val">ACTIVE</span>
-        </div>
-        <div class="status-row">
-          <span><span class="status-dot amber" aria-hidden="true"></span>OSINT Reconnaissance Nodes</span>
-          <span class="status-val">SYNCHRONIZING</span>
-        </div>
-        <div class="status-row">
-          <span><span class="status-dot green" aria-hidden="true"></span>Secure Communications Channel</span>
-          <span class="status-val">ENCRYPTED</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- SERVICES / OPERATIONS -->
-<section class="section-block" id="operations">
-  <div class="section-inner">
-    <div class="section-eyebrow">◼ CAPABILITIES &amp; SERVICES</div>
-    <h2 class="section-heading">Core Operational Divisions</h2>
-    <hr class="section-rule">
-    <p class="section-lead">Advanced offensive security and threat assessment paradigms tailored for high-risk digital infrastructures.</p>
-
-    <div class="services-grid">
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        </div>
-        <div class="service-code">DIV_01 // OFFENSIVE</div>
-        <h3 class="service-name">Penetration Testing</h3>
-        <p class="service-desc">Rigorous simulation of targeted cyber attacks to identify and remediate vulnerabilities before exploitation.</p>
-      </div>
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div class="service-code">DIV_02 // INTELLIGENCE</div>
-        <h3 class="service-name">Threat Intelligence</h3>
-        <p class="service-desc">Continuous monitoring, OSINT domain enumeration, and adversarial tracking to preempt emerging vectors.</p>
-      </div>
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-        </div>
-        <div class="service-code">DIV_03 // ARCHITECTURE</div>
-        <h3 class="service-name">Secure Architecture</h3>
-        <p class="service-desc">Designing and hardening resilient network topologies and host configurations against advanced persistent threats.</p>
-      </div>
-      <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        </div>
-        <div class="service-code">DIV_04 // FORENSICS</div>
-        <h3 class="service-name">Incident Forensics</h3>
-        <p class="service-desc">Post-breach investigation, artifact recovery, crypto-analysis, and comprehensive root-cause reporting.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- DIRECTIVE -->
-<section class="section-block directive-block" id="directive">
-  <div class="section-inner">
-    <div class="section-eyebrow">◼ OPERATIONAL DOCTRINE</div>
-    <h2 class="section-heading">The AEGIS Standard</h2>
-    <hr class="section-rule">
-    
-    <div class="directive-layout">
-      <div class="directive-text">
-        "Security is not a static product; it is a dynamic posture of continuous vigilance, aggressive testing, and absolute compartmentalization. Every asset must be treated as hostile territory until proven otherwise."
-      </div>
-      <ul class="directive-checklist">
-        <li>
-          <span class="check-mark">■</span>
-          <span>Zero reliance on default configurations or heuristic-only defensive models.</span>
-        </li>
-        <li>
-          <span class="check-mark">■</span>
-          <span>Exhaustive OSINT enumeration across deep and surface infrastructure vectors.</span>
-        </li>
-        <li>
-          <span class="check-mark">■</span>
-          <span>Bespoke tooling and custom framework execution tailored to exact threat models.</span>
-        </li>
-        <li>
-          <span class="check-mark">■</span>
-          <span>Uncompromising confidentiality and discretionary handling of all client intelligence.</span>
-        </li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- INTEL FEED -->
-<section class="section-block" id="intel-feed">
-  <div class="section-inner">
-    <div class="section-eyebrow">◼ ADVISORY FEED</div>
-    <h2 class="section-heading">Recent Intelligence Briefs</h2>
-    <hr class="section-rule">
-    <p class="section-lead">Latest threat vectors, advisory analyses, and tactical assessments cataloged by our research wing.</p>
-
-    <div class="intel-grid">
-      <!-- Intel Card 1 -->
-      <article class="intel-card">
-        <div class="intel-header">
-          <span class="intel-classification-tag">◼ RESTRICTED BRIEF</span>
-          <span class="intel-id">REF // ADV-2026-09</span>
-        </div>
-        <div class="intel-body">
-          <h3 class="intel-title">Advanced OSINT Reconnaissance &amp; Automated Enumeration</h3>
-          <div class="intel-meta">
-            <span>DATE: OCT 2026</span>
-            <span>AUTHOR: CYBER_OPS</span>
-          </div>
-          <p class="intel-summary">Analysis of automated footprinting methodologies targeting perimeter domains. Utilizing custom Python frameworks to map organizational attack surfaces effectively.</p>
-          <div class="attack-chain">
-            <span class="chain-label">ATTACK PATHWAY SIMULATION</span>
-            <span class="attack-step">Target Input</span><span class="attack-arrow">→</span><span class="attack-step">DNS Enumeration</span><span class="attack-arrow">→</span><span class="attack-step">Port Profiling</span><span class="attack-arrow">→</span><span class="attack-step">Report Generation</span>
-          </div>
-          <div class="intel-tags">
-            <span class="intel-tag">OSINT</span>
-            <span class="intel-tag">RECON</span>
-            <span class="intel-tag">AUTOMATION</span>
-          </div>
-        </div>
-        <div class="intel-footer">
-          <span class="intel-author">STATUS: VERIFIED</span>
-          <span class="intel-severity severity-high">HIGH</span>
-        </div>
-      </article>
-
-      <!-- Intel Card 2 -->
-      <article class="intel-card">
-        <div class="intel-header">
-          <span class="intel-classification-tag">◼ CRITICAL ADVISORY</span>
-          <span class="intel-id">REF // ADV-2026-10</span>
-        </div>
-        <div class="intel-body">
-          <h3 class="intel-title">Crime Branch Case File Analysis &amp; Digital Forensics</h3>
-          <div class="intel-meta">
-            <span>DATE: OCT 2026</span>
-            <span>AUTHOR: FORENSICS_DIV</span>
-          </div>
-          <p class="intel-summary">Case studies in analyzing complex digital fraud artifacts, cryptographic trace extraction, and handling secure evidentiary chains for cyber cell investigations.</p>
-          <div class="attack-chain">
-            <span class="chain-label">FORENSIC PIPELINE</span>
-            <span class="attack-step">Artifact Seizure</span><span class="attack-arrow">→</span><span class="attack-step">Hash Verification</span><span class="attack-arrow">→</span><span class="attack-step">Cryptanalysis</span><span class="attack-arrow">→</span><span class="attack-step">Attribution</span>
-          </div>
-          <div class="intel-tags">
-            <span class="intel-tag">FORENSICS</span>
-            <span class="intel-tag">CRYPTO</span>
-            <span class="intel-tag">INCIDENT_RESPONSE</span>
-          </div>
-        </div>
-        <div class="intel-footer">
-          <span class="intel-author">STATUS: PRIORITY</span>
-          <span class="intel-severity severity-critical">CRITICAL</span>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ASSETS -->
-<section class="section-block" id="assets" style="background: rgba(7, 16, 31, 0.4);">
-  <div class="section-inner">
-    <div class="section-eyebrow">◼ REPOSITORIES &amp; TOOLS</div>
-    <h2 class="section-heading">Open-Source Assets</h2>
-    <hr class="section-rule">
-    <p class="section-lead">Publicly accessible reconnaissance frameworks, scripts, and security utilities developed under AEGIS.</p>
-
-    <div class="assets-grid">
-      <a href="https://github.com/CyberSh3ll-oss/gods_eye" target="_blank" rel="noopener noreferrer" class="asset-btn">
-        » God's Eye (OSINT Framework)
-      </a>
-      <a href="https://github.com/CyberSh3ll-oss" target="_blank" rel="noopener noreferrer" class="asset-btn">
-        » GitHub Repository Index
-      </a>
-      <a href="#engage" class="asset-btn">
-        » Request Custom Tooling
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- PERSONNEL -->
-<section class="section-block" id="personnel">
-  <div class="section-inner">
-    <div class="section-eyebrow">◼ COMMAND PERSONNEL</div>
-    <h2 class="section-heading">Lead Security Engineer</h2>
-    <hr class="section-rule">
-
-    <div class="personnel-grid">
-      <div class="personnel-card">
-        <div class="personnel-banner">
-          <div class="personnel-avatar">VR</div>
-          <div>
-            <h3 class="personnel-name">Vaishnav Rajeev</h3>
-            <div class="personnel-role">Founder &amp; Principal Security Consultant</div>
-          </div>
-        </div>
-        <div class="personnel-body">
-          <p class="personnel-bio">
-            Cybersecurity specialist experienced in offensive security operations, penetration testing, automated reconnaissance framework design, and digital forensics. Dedicated to providing independent, highly confidential threat intelligence and IT solutions.
-          </p>
-          <div class="personnel-specs">
-            <div class="spec-label">SPECIALIZATIONS</div>
-            <div class="spec-tags">
-              <span class="spec-tag">Penetration Testing</span>
-              <span class="spec-tag">OSINT Reconnaissance</span>
-              <span class="spec-tag">Python Scripting</span>
-              <span class="spec-tag">Linux Systems</span>
-              <span class="spec-tag">Digital Forensics</span>
+        <!-- HERO SECTION -->
+        <section class="text-center pt-8 md:pt-16 space-y-8">
+            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full glass-panel text-xs text-gray-300 mb-2 border border-white/15">
+                <i class="fa-solid fa-lock text-appleBlue"></i>
+                <span>Classified Offensive Security & Tactical Defense</span>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="personnel-card">
-        <div class="personnel-banner">
-          <div class="personnel-avatar" style="font-size: 0.9rem;">EXP</div>
-          <div>
-            <h3 class="personnel-name">Operational Background</h3>
-            <div class="personnel-role">Field Experience &amp; Internships</div>
-          </div>
-        </div>
-        <div class="personnel-body">
-          <p class="personnel-bio">
-            Hands-on casework experience derived from professional technical internships including practical exposure at the Kerala Police Cyber Cell crime branch, dealing with crypto-analysis, case file evaluation, and cyber fraud analysis.
-          </p>
-          <div class="personnel-specs">
-            <div class="spec-label">BACKGROUND HIGHLIGHTS</div>
-            <div class="spec-tags">
-              <span class="spec-tag">Cyber Cell Crime Branch</span>
-              <span class="spec-tag">Case File Analysis</span>
-              <span class="spec-tag">Threat Mitigation</span>
-              <span class="spec-tag">Independent Consulting</span>
+            <h1 class="text-5xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-apple-gradient max-w-5xl mx-auto leading-none">
+                AEGIS Threat Intelligence
+            </h1>
+
+            <p class="text-lg sm:text-2xl text-appleTextDim font-normal max-w-3xl mx-auto leading-relaxed">
+                Advanced Red Teaming, Vulnerability Forensics, and Autonomous Threat Mitigation Systems built for High-Risk Infrastructure.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-4 pt-4">
+                <a href="#engagement" class="bg-white text-black hover:bg-gray-200 font-semibold px-7 py-3 rounded-full transition-all text-sm shadow-xl flex items-center space-x-2">
+                    <span>Deploy Defense Squad</span>
+                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                </a>
+                <a href="#intel" class="glass-panel text-white hover:bg-white/10 font-semibold px-7 py-3 rounded-full transition-all text-sm flex items-center space-x-2 border border-white/20">
+                    <i class="fa-solid fa-terminal text-appleBlue"></i>
+                    <span>Live Advisories</span>
+                </a>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="academic-section">
-      <div class="academic-title">◼ ACADEMIC &amp; TECHNICAL FOUNDATION</div>
-      <div class="academic-grid">
-        <div class="academic-item">B.Tech Cyber Security (3rd Year)</div>
-        <div class="academic-item">Chinmaya Vishwavidyapeeth</div>
-        <div class="academic-item">Arch Linux / Kali / BlackArch</div>
-        <div class="academic-item">Python Framework Design</div>
-        <div class="academic-item">Network Topologies &amp; Hardening</div>
-        <div class="academic-item">Cryptographic Protocols</div>
-      </div>
-    </div>
-  </div>
-</section>
+            <!-- Operational Status Panel (Apple Widget Style) -->
+            <div class="pt-10 max-w-4xl mx-auto">
+                <div class="glass-panel rounded-2xl p-6 text-left shadow-2xl relative overflow-hidden group border border-white/15">
+                    <div class="flex flex-wrap items-center justify-between border-b border-white/10 pb-4 mb-4 gap-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 rounded-full bg-appleGreen animate-ping"></div>
+                            <span class="text-xs font-mono font-semibold tracking-wider text-white uppercase">Operational Status Panel</span>
+                        </div>
+                        <div class="flex items-center space-x-4 text-xs text-appleTextDim font-mono">
+                            <span>GRID: ONLINE</span>
+                            <span>|</span>
+                            <span>NODE: IN-DELHI-01</span>
+                            <span>|</span>
+                            <span>SYS_LATENCY: 12ms</span>
+                        </div>
+                    </div>
 
-<!-- CONTACT FORM -->
-<section class="section-block contact-block" id="engage">
-  <div class="section-inner">
-    <div style="text-align: center; margin-bottom: 2.5rem;">
-      <div class="section-eyebrow">◼ SECURE CHANNEL</div>
-      <h2 class="section-heading">Initiate Engagement</h2>
-      <hr class="section-rule" style="margin: 0.5rem auto 1.5rem auto;">
-      <p class="section-lead" style="margin: 0 auto;">Direct inquiry transmission for freelance cybersecurity consulting, audits, or threat intelligence assessments.</p>
-    </div>
-
-    <div class="form-container">
-      <div class="form-header">
-        <span class="form-header-title">ENCRYPTED_TRANSMISSION_FORM</span>
-        <span class="form-header-enc">AES-256-GCM</span>
-      </div>
-      <div class="form-body">
-        <form action="#" method="POST" onsubmit="event.preventDefault(); alert('Transmission simulated successfully. Direct inquiries can be routed to the administrator.');">
-          <div class="form-group">
-            <label class="form-label">Your Name / Designation <span class="req">*</span></label>
-            <input type="text" class="form-input" placeholder="e.g. Agent Smith / Organization Name" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Secure Contact Email <span class="req">*</span></label>
-            <input type="email" class="form-input" placeholder="name@domain.com" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Engagement Classification <span class="req">*</span></label>
-            <div class="form-select-wrap">
-              <select class="form-select" required>
-                <option value="" disabled selected>Select service category...</option>
-                <option value="pentest">Penetration Testing &amp; Vulnerability Assessment</option>
-                <option value="threat">Threat Intelligence &amp; OSINT Reconnaissance</option>
-                <option value="audit">Secure Infrastructure Architecture Audit</option>
-                <option value="forensics">Incident Forensics &amp; Artifact Analysis</option>
-                <option value="custom">Custom Tooling / Script Development</option>
-              </select>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                        <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-appleTextDim uppercase font-mono">Global Threat Index</div>
+                                <div class="text-lg font-bold text-appleAmber font-mono">MODERATE (3.4)</div>
+                            </div>
+                            <i class="fa-solid fa-chart-line text-appleAmber text-xl"></i>
+                        </div>
+                        <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-appleTextDim uppercase font-mono">Active Countermeasures</div>
+                                <div class="text-lg font-bold text-appleGreen font-mono">99.98% COVERAGE</div>
+                            </div>
+                            <i class="fa-solid fa-shield-check text-appleGreen text-xl"></i>
+                        </div>
+                        <div class="bg-black/30 p-3.5 rounded-xl border border-white/5 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-appleTextDim uppercase font-mono">Zero-Day Sentinel</div>
+                                <div class="text-lg font-bold text-appleBlue font-mono">ARMED & SCANNING</div>
+                            </div>
+                            <i class="fa-solid fa-radar text-appleBlue text-xl"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
+        </section>
 
-          <div class="form-group">
-            <label class="form-label">Project Scope &amp; Parameters <span class="req">*</span></label>
-            <textarea class="form-textarea" placeholder="Detail the objectives, environment, or parameters of your engagement..." required></textarea>
-          </div>
 
-          <div class="form-checkbox-group">
-            <input type="checkbox" id="conf-check" class="form-checkbox" required>
-            <label for="conf-check" class="form-checkbox-label">
-              I acknowledge that all transmitted information is handled with strict discretion and absolute confidentiality by Vaishnav Rajeev.
-            </label>
-          </div>
+        <!-- OPERATIONS / CAPABILITIES (4 Glass Cards Grid) -->
+        <section id="capabilities" class="space-y-12">
+            <div class="text-center space-y-3">
+                <h2 class="text-xs uppercase tracking-widest font-mono text-appleBlue font-semibold">Core Competencies</h2>
+                <h3 class="text-3xl sm:text-5xl font-bold text-apple-gradient tracking-tight">Offensive & Defensive Operations</h3>
+            </div>
 
-          <button type="submit" class="form-submit">Transmit Encrypted Inquiry »</button>
-          <div class="form-note">STATUS: READY FOR TRANSMISSION &nbsp;·&nbsp; DIRECT DISCRETION ASSURED</div>
-        </form>
-      </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card 1 -->
+                <div class="glass-panel p-8 rounded-3xl space-y-4 hover:-translate-y-1.5 transition-all duration-300 hover:shadow-glow-blue group">
+                    <div class="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-appleBlue text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-bug-slash"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-white tracking-tight">Penetration Testing & Red Teaming</h4>
+                    <p class="text-appleTextDim text-sm leading-relaxed">
+                        Full-scope adversary emulation replicating TTPs (Tactics, Techniques, and Procedures) of nation-state threat groups to uncover systemic flaws before malicious actors exploit them.
+                    </p>
+                    <ul class="text-xs font-mono text-gray-300 space-y-2 pt-2 border-t border-white/10">
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-appleBlue mr-2"></i> Web & Mobile Application Exploitation</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-appleBlue mr-2"></i> Cloud Infrastructure & Kubernetes Audit</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-appleBlue mr-2"></i> Physical & Social Engineering Simulations</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-panel p-8 rounded-3xl space-y-4 hover:-translate-y-1.5 transition-all duration-300 hover:shadow-glow-blue group">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-network-wired"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-white tracking-tight">Threat Intelligence & OSINT</h4>
+                    <p class="text-appleTextDim text-sm leading-relaxed">
+                        Deep and Dark Web reconnaissance combined with customized open-source intelligence frameworks to continuously map external attack surfaces and target exposures.
+                    </p>
+                    <ul class="text-xs font-mono text-gray-300 space-y-2 pt-2 border-t border-white/10">
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-indigo-400 mr-2"></i> Darknet Brand & Data Leak Monitoring</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-indigo-400 mr-2"></i> Automated OSINT Asset Mapping</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-indigo-400 mr-2"></i> Real-time Threat Advisory Subscriptions</li>
+                    </ul>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel p-8 rounded-3xl space-y-4 hover:-translate-y-1.5 transition-all duration-300 hover:shadow-glow-blue group">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-white tracking-tight">Secure Architecture & Engineering</h4>
+                    <p class="text-appleTextDim text-sm leading-relaxed">
+                        Architectural review and Zero-Trust implementation designed to harden high-availability cloud platforms, cryptosystems, and critical enterprise networks.
+                    </p>
+                    <ul class="text-xs font-mono text-gray-300 space-y-2 pt-2 border-t border-white/10">
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-purple-400 mr-2"></i> Zero-Trust Network & IAM Architecture</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-purple-400 mr-2"></i> Code Review & Secure SDLC Integration</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-purple-400 mr-2"></i> Cryptographic Implementation Audits</li>
+                    </ul>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="glass-panel p-8 rounded-3xl space-y-4 hover:-translate-y-1.5 transition-all duration-300 hover:shadow-glow-red group">
+                    <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-appleRed text-2xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-fingerprint"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold text-white tracking-tight">Incident Forensics & Response</h4>
+                    <p class="text-appleTextDim text-sm leading-relaxed">
+                        Rapid-response digital forensics and incident handling to contain, eradicate, and perform root-cause analysis during active ransomware or intrusion events.
+                    </p>
+                    <ul class="text-xs font-mono text-gray-300 space-y-2 pt-2 border-t border-white/10">
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-appleRed mr-2"></i> Host & Network Memory Forensics</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-appleRed mr-2"></i> Reverse Engineering & Malware Analysis</li>
+                        <li class="flex items-center"><i class="fa-solid fa-angle-right text-appleRed mr-2"></i> Compromise Assessment & Remediation</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- OPERATIONAL DIRECTIVE & DOCTRINE -->
+        <section id="directive" class="space-y-8">
+            <div class="glass-panel rounded-3xl p-8 md:p-12 border border-white/20 relative overflow-hidden">
+                <div class="max-w-3xl space-y-6">
+                    <div class="inline-block text-xs font-mono text-appleBlue uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                        Operational Doctrine
+                    </div>
+
+                    <blockquote class="text-2xl md:text-4xl font-extrabold text-white tracking-tight leading-snug">
+                        “Defense is not a state of static compliance, but an active, relentless pursuit of adversary mechanics.”
+                    </blockquote>
+
+                    <p class="text-appleTextDim text-base leading-relaxed">
+                        At AEGIS, we enforce a strict offensive-first methodology. True resilience is achieved only when systems are stress-tested under real-world threat conditions without operational compromises.
+                    </p>
+
+                    <!-- Doctrine Checklist -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                        <div class="flex items-start space-x-3">
+                            <div class="text-appleGreen mt-1"><i class="fa-solid fa-circle-check"></i></div>
+                            <span class="text-sm font-medium text-gray-200">Zero-Compromise Confidentiality & NDA Protocols</span>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="text-appleGreen mt-1"><i class="fa-solid fa-circle-check"></i></div>
+                            <span class="text-sm font-medium text-gray-200">Strict Adherence to International Cyber Frameworks</span>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="text-appleGreen mt-1"><i class="fa-solid fa-circle-check"></i></div>
+                            <span class="text-sm font-medium text-gray-200">Automated Remediation Verification & Re-Testing</span>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="text-appleGreen mt-1"><i class="fa-solid fa-circle-check"></i></div>
+                            <span class="text-sm font-medium text-gray-200">24/7 Priority Emergency Incident Escalation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- INTEL FEED (Threat Advisories) -->
+        <section id="intel" class="space-y-10">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-xs uppercase tracking-widest font-mono text-appleBlue font-semibold">Real-Time Threat Intelligence</h2>
+                    <h3 class="text-3xl sm:text-5xl font-bold text-apple-gradient tracking-tight">Active Advisories</h3>
+                </div>
+                <div class="text-xs font-mono text-appleTextDim">
+                    UPDATED: <span class="text-white">LIVE FEED</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Advisory 1 -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4 border-l-4 border-l-appleRed flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono uppercase bg-red-500/20 text-appleRed font-bold px-2.5 py-0.5 rounded-full">CRITICAL</span>
+                            <span class="text-xs font-mono text-appleTextDim">ADV-2026-089</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-white">OAuth Token Interception in Microservices</h4>
+                        <p class="text-xs text-appleTextDim leading-relaxed">
+                            Zero-day vector exposing JWT refresh tokens due to misconfigured CORS headers and proxy headers in containerized gateways.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-white/10 space-y-2">
+                        <div class="text-[10px] font-mono text-gray-400">TARGET: Cloud Gateways / K8s</div>
+                        <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-appleRed h-full w-[92%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-mono text-appleTextDim">
+                            <span>CVSS: 9.8</span>
+                            <span class="text-appleRed">IMMEDIATE PATCH REQ.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advisory 2 -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4 border-l-4 border-l-appleAmber flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono uppercase bg-amber-500/20 text-appleAmber font-bold px-2.5 py-0.5 rounded-full">HIGH SEVERITY</span>
+                            <span class="text-xs font-mono text-appleTextDim">ADV-2026-074</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-white">RCE via Deserialization in Java Stack</h4>
+                        <p class="text-xs text-appleTextDim leading-relaxed">
+                            Unauthenticated remote code execution vulnerability discovered in legacy messaging queue middleware.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-white/10 space-y-2">
+                        <div class="text-[10px] font-mono text-gray-400">TARGET: Enterprise Java Frameworks</div>
+                        <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-appleAmber h-full w-[84%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-mono text-appleTextDim">
+                            <span>CVSS: 8.4</span>
+                            <span class="text-appleAmber">MITIGATION ACTIVE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advisory 3 -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4 border-l-4 border-l-appleBlue flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono uppercase bg-blue-500/20 text-appleBlue font-bold px-2.5 py-0.5 rounded-full">MODERATE</span>
+                            <span class="text-xs font-mono text-appleTextDim">ADV-2026-061</span>
+                        </div>
+                        <h4 class="text-lg font-bold text-white">BGP Route Hijacking Telemetry</h4>
+                        <p class="text-xs text-appleTextDim leading-relaxed">
+                            Anomalous AS-path propagation detected across APAC regional backbones targeting Fintech API endpoints.
+                        </p>
+                    </div>
+                    <div class="pt-4 border-t border-white/10 space-y-2">
+                        <div class="text-[10px] font-mono text-gray-400">TARGET: Core Network Infrastructure</div>
+                        <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-appleBlue h-full w-[65%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-mono text-appleTextDim">
+                            <span>CVSS: 6.5</span>
+                            <span class="text-appleBlue">MONITORING</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- OPEN SOURCE ASSETS -->
+        <section id="github-assets" class="space-y-8">
+            <div class="text-center space-y-3">
+                <h2 class="text-xs uppercase tracking-widest font-mono text-appleBlue font-semibold">Community & Tooling</h2>
+                <h3 class="text-3xl sm:text-5xl font-bold text-apple-gradient tracking-tight">Open-Source Cyber Assets</h3>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-8 border border-white/15 space-y-6">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-brands fa-github text-3xl text-white"></i>
+                            <h4 class="text-2xl font-bold text-white">God's Eye OSINT Framework</h4>
+                        </div>
+                        <p class="text-appleTextDim text-sm max-w-2xl">
+                            An autonomous reconnaissance suite designed to crawl, map, and correlate public asset footprints across multi-cloud networks and code repositories.
+                        </p>
+                    </div>
+                    <a href="https://github.com" target="_blank" class="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-full text-xs font-mono font-semibold flex items-center space-x-2 transition-all">
+                        <span>View Repository</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-white/10 text-center font-mono text-xs">
+                    <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <div class="text-appleTextDim text-[10px]">STARS</div>
+                        <div class="text-white font-bold text-base">1.4k+</div>
+                    </div>
+                    <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <div class="text-appleTextDim text-[10px]">FORKS</div>
+                        <div class="text-white font-bold text-base">320+</div>
+                    </div>
+                    <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <div class="text-appleTextDim text-[10px]">LICENSE</div>
+                        <div class="text-white font-bold text-base">MIT</div>
+                    </div>
+                    <div class="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <div class="text-appleTextDim text-[10px]">BUILD</div>
+                        <div class="text-appleGreen font-bold text-base">PASSING</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- PERSONNEL SECTION -->
+        <section id="personnel" class="space-y-12">
+            <div class="text-center space-y-3">
+                <h2 class="text-xs uppercase tracking-widest font-mono text-appleBlue font-semibold">Leadership & Expertise</h2>
+                <h3 class="text-3xl sm:text-5xl font-bold text-apple-gradient tracking-tight">Principal Operational Security</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Founder Profile Card -->
+                <div class="glass-panel rounded-3xl p-8 md:col-span-1 space-y-6 flex flex-col justify-between border border-white/20">
+                    <div class="space-y-4">
+                        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-900 border-2 border-white/20 flex items-center justify-center text-3xl text-white shadow-xl">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-bold text-white">Vaishnav Rajeev</h4>
+                            <p class="text-xs font-mono text-appleBlue">Founder & Principal Security Consultant</p>
+                        </div>
+                        <p class="text-xs text-appleTextDim leading-relaxed">
+                            Specializing in offensive threat operations, reverse engineering, and critical cloud infrastructure defense with over a decade of field research.
+                        </p>
+                    </div>
+
+                    <div class="pt-4 border-t border-white/10 space-y-2">
+                        <div class="text-[10px] font-mono text-appleTextDim uppercase">Certifications & Clearance</div>
+                        <div class="flex flex-wrap gap-1.5 font-mono text-[10px]">
+                            <span class="bg-white/10 px-2 py-0.5 rounded text-white border border-white/10">OSCP</span>
+                            <span class="bg-white/10 px-2 py-0.5 rounded text-white border border-white/10">CISSP</span>
+                            <span class="bg-white/10 px-2 py-0.5 rounded text-white border border-white/10">CEH Master</span>
+                            <span class="bg-white/10 px-2 py-0.5 rounded text-white border border-white/10">AWS Security Spec</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic & Field Background -->
+                <div class="glass-panel rounded-3xl p-8 md:col-span-2 space-y-6 border border-white/15 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xl font-bold text-white mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-graduation-cap text-appleBlue"></i>
+                            <span>Academic Foundation & Field Experience</span>
+                        </h4>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5 space-y-2">
+                                <div class="text-xs font-mono text-appleBlue">DEGREE / SPECIALIZATION</div>
+                                <div class="text-sm font-bold text-white">B.Tech in Cybersecurity & Networks</div>
+                                <p class="text-xs text-appleTextDim">Focused on advanced cryptographic systems and protocol vulnerability analysis.</p>
+                            </div>
+                            <div class="bg-black/30 p-4 rounded-2xl border border-white/5 space-y-2">
+                                <div class="text-xs font-mono text-appleBlue">FIELD RESEARCH</div>
+                                <div class="text-sm font-bold text-white">Autonomous Threat Detection</div>
+                                <p class="text-xs text-appleTextDim">Author of research papers on neural-assisted malware classification in Linux kernels.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 text-xs text-gray-300 flex items-center space-x-3">
+                        <i class="fa-solid fa-shield-virus text-appleBlue text-xl"></i>
+                        <span>Active advisory role for governmental and enterprise financial institutions across APAC & EMEA regions.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- INITIATE ENGAGEMENT FORM -->
+        <section id="engagement" class="space-y-8">
+            <div class="text-center space-y-3">
+                <h2 class="text-xs uppercase tracking-widest font-mono text-appleBlue font-semibold">Secure Communication</h2>
+                <h3 class="text-3xl sm:text-5xl font-bold text-apple-gradient tracking-tight">Initiate Operational Engagement</h3>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-8 sm:p-12 max-w-3xl mx-auto border border-white/20 shadow-2xl relative">
+                <div class="flex items-center justify-between pb-6 mb-8 border-b border-white/10 text-xs font-mono">
+                    <span class="text-appleGreen flex items-center"><i class="fa-solid fa-lock mr-2"></i> 256-BIT END-TO-END ENCRYPTED TRANSMISSION</span>
+                    <span class="text-appleTextDim">CHANNEL: SECURE-01</span>
+                </div>
+
+                <form onsubmit="event.preventDefault(); alert('Transmission Received. AEGIS Operator will respond via GPG Encrypted Channel within 2 hours.');" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="block text-xs font-mono uppercase text-appleTextDim">Organization / Entity</label>
+                            <input type="text" required placeholder="e.g. Acme Cybernetics" class="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-appleBlue transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-xs font-mono uppercase text-appleTextDim">Secure Contact Email</label>
+                            <input type="email" required placeholder="operator@entity.com" class="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-appleBlue transition-all">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-mono uppercase text-appleTextDim">Engagement Scope Required</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-medium">
+                            <label class="flex items-center space-x-2 bg-black/30 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-white/30">
+                                <input type="checkbox" class="accent-appleBlue">
+                                <span>Red Teaming</span>
+                            </label>
+                            <label class="flex items-center space-x-2 bg-black/30 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-white/30">
+                                <input type="checkbox" class="accent-appleBlue">
+                                <span>Incident Response</span>
+                            </label>
+                            <label class="flex items-center space-x-2 bg-black/30 p-3 rounded-xl border border-white/10 cursor-pointer hover:border-white/30">
+                                <input type="checkbox" class="accent-appleBlue">
+                                <span>Architecture Audit</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-mono uppercase text-appleTextDim">Mission Parameters & Directive</label>
+                        <textarea rows="4" required placeholder="Describe target environment, constraints, and timeline requirements..." class="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-appleBlue transition-all"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-appleBlue hover:bg-blue-600 text-white font-semibold py-3.5 rounded-xl transition-all shadow-glow-blue border border-white/20 text-sm flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Transmit Encrypted Directive</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- APPLE-STYLE MULTI-COLUMN FOOTER -->
+    <footer class="bg-black border-t border-white/10 pt-16 pb-12 text-xs text-appleTextDim relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <!-- Footer Multi-Column Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
+                <div class="space-y-3">
+                    <div class="text-white font-semibold uppercase font-mono tracking-wider text-[11px]">Operations</div>
+                    <ul class="space-y-2">
+                        <li><a href="#capabilities" class="hover:text-white transition-colors">Penetration Testing</a></li>
+                        <li><a href="#capabilities" class="hover:text-white transition-colors">Threat Reconnaissance</a></li>
+                        <li><a href="#capabilities" class="hover:text-white transition-colors">Zero-Trust Architecture</a></li>
+                        <li><a href="#capabilities" class="hover:text-white transition-colors">Digital Forensics</a></li>
+                    </ul>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="text-white font-semibold uppercase font-mono tracking-wider text-[11px]">Intel & Labs</div>
+                    <ul class="space-y-2">
+                        <li><a href="#intel" class="hover:text-white transition-colors">Live Vulnerability Feed</a></li>
+                        <li><a href="#github-assets" class="hover:text-white transition-colors">Open Source Assets</a></li>
+                        <li><a href="#intel" class="hover:text-white transition-colors">CVSS Tracker</a></li>
+                        <li><a href="#intel" class="hover:text-white transition-colors">Research Papers</a></li>
+                    </ul>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="text-white font-semibold uppercase font-mono tracking-wider text-[11px]">Leadership</div>
+                    <ul class="space-y-2">
+                        <li><a href="#personnel" class="hover:text-white transition-colors">Principal Security</a></li>
+                        <li><a href="#personnel" class="hover:text-white transition-colors">Academic Foundation</a></li>
+                        <li><a href="#personnel" class="hover:text-white transition-colors">Field Experience</a></li>
+                        <li><a href="#engagement" class="hover:text-white transition-colors">Clearance Verification</a></li>
+                    </ul>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="text-white font-semibold uppercase font-mono tracking-wider text-[11px]">Legal & Ethics</div>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-white transition-colors">Rules of Engagement</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Protocol</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Responsible Disclosure</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Clearance</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-span-2 md:col-span-1 space-y-3">
+                    <div class="text-white font-semibold uppercase font-mono tracking-wider text-[11px]">Secure Status</div>
+                    <div class="glass-panel p-3 rounded-xl border border-white/10 space-y-2">
+                        <div class="flex items-center space-x-2 text-[10px] text-appleGreen font-mono">
+                            <span class="w-2 h-2 rounded-full bg-appleGreen animate-pulse"></span>
+                            <span>ALL NODES SECURE</span>
+                        </div>
+                        <p class="text-[10px] text-appleTextDim">AEGIS Security Operations Center (India & Global Hubs)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright & Legal Line -->
+            <div class="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p>© 2026 AEGIS Threat Intelligence & Offensive Security. All rights reserved.</p>
+                <div class="flex items-center space-x-6 text-appleTextDim">
+                    <a href="#" class="hover:text-white"><i class="fa-brands fa-github text-base"></i></a>
+                    <a href="#" class="hover:text-white"><i class="fa-brands fa-x-twitter text-base"></i></a>
+                    <a href="#" class="hover:text-white"><i class="fa-brands fa-linkedin text-base"></i></a>
+                    <a href="#" class="hover:text-white"><i class="fa-solid fa-key text-base"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- SYSTEM NOTICE MODAL (Page Load Security Clearance Alert) -->
+    <div id="security-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal max-w-md w-full rounded-3xl p-6 sm:p-8 space-y-6 text-center border border-white/20 animate-fade-in">
+            <div class="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-appleBlue text-3xl mx-auto shadow-inner">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="text-2xl font-bold text-white tracking-tight">Security Notice</h3>
+                <p class="text-xs text-appleTextDim leading-relaxed">
+                    You are accessing the confidential portal of <span class="text-white font-semibold">AEGIS Threat Intelligence</span>. All access attempts and operational interactions are monitored under encrypted telemetry protocols.
+                </p>
+            </div>
+
+            <div class="bg-black/40 p-3 rounded-xl border border-white/10 text-left space-y-1 font-mono text-[11px] text-gray-300">
+                <div class="flex justify-between"><span>SESSION ID:</span> <span class="text-appleBlue">AEGIS-9920-X</span></div>
+                <div class="flex justify-between"><span>ENCRYPTION:</span> <span class="text-appleGreen">TLS 1.3 / AES-256</span></div>
+            </div>
+
+            <button id="modal-acknowledge-btn" class="w-full bg-appleBlue hover:bg-blue-600 text-white font-semibold py-3 rounded-xl transition-all shadow-glow-blue border border-white/20 text-sm">
+                Acknowledge & Enter
+            </button>
+        </div>
     </div>
-  </div>
-</section>
 
-<!-- FOOTER -->
-<footer class="site-footer" role="contentinfo">
-  <div class="footer-inner">
-    <div>
-      <div class="footer-brand-name">AEGIS</div>
-      <div class="footer-brand-line">Threat Intelligence &amp; Offensive Security</div>
-    </div>
-    <div>
-      <div class="footer-col-title">Navigation</div>
-      <ul class="footer-links">
-        <li><a href="#operations">Operations</a></li>
-        <li><a href="#directive">Directive</a></li>
-        <li><a href="#intel-feed">Intel Feed</a></li>
-        <li><a href="#assets">Assets</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-col-title">Administration</div>
-      <ul class="footer-links">
-        <li><a href="#personnel">Personnel</a></li>
-        <li><a href="#engage">Initiate Engagement</a></li>
-        <li><a href="https://github.com/CyberSh3ll-oss" target="_blank" rel="noopener noreferrer">GitHub OSS</a></li>
-      </ul>
-    </div>
-  </div>
 
-  <div class="footer-bottom">
-    <div class="footer-copy">© 2026 AEGIS Consulting. Engineered &amp; Managed by Vaishnav Rajeev. All Rights Reserved.</div>
-    <div class="footer-clearance">SECURE CHANNEL ACTIVE</div>
-  </div>
-</footer>
+    <!-- JavaScript for Dynamic Actions -->
+    <script>
+        // Modal Dismissal Logic
+        const securityModal = document.getElementById('security-modal');
+        const modalBtn = document.getElementById('modal-acknowledge-btn');
 
-<script>
-  // Modal acknowledgment handler
-  document.getElementById('modal-ack-btn').addEventListener('click', function() {
-    const modal = document.getElementById('system-notice-modal');
-    modal.classList.add('hidden');
-    document.body.classList.remove('modal-open');
-  });
+        modalBtn.addEventListener('click', () => {
+            securityModal.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                securityModal.style.display = 'none';
+            }, 300);
+        });
 
-  // Mobile navigation toggle handler
-  const navToggle = document.getElementById('nav-toggle');
-  const navLinks = document.getElementById('nav-links');
+        // Mobile Menu Drawer Toggle
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
 
-  navToggle.addEventListener('click', function() {
-    const expanded = navToggle.getAttribute('aria-expanded') === 'true' || false;
-    navToggle.setAttribute('aria-expanded', !expanded);
-    navLinks.classList.toggle('open');
-  });
+        mobileBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
 
-  // Close mobile nav when clicking any link
-  navLinks.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      navLinks.classList.remove('open');
-      navToggle.setAttribute('aria-expanded', 'false');
-    });
-  });
-</script>
-
+        // Close mobile drawer on link click
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
 </body>
 </html>
